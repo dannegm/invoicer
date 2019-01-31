@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="buttons floating-actions">
-                    <button class="button is-info is-rounded">
+                    <button class="button is-info is-rounded" @click="printInvoice">
                         <span>Imprimir</span>
                         <span class="icon is-small">
                             <i class="fas fa-print"></i>
@@ -76,6 +76,9 @@ export default {
         Summary,
     },
     methods: {
+        printInvoice () {
+            window.print();
+        },
         removeSummaryAt (uid) {
             this.summaries = this.summaries.filter (i => i.uid != uid);
         },
