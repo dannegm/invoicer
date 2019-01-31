@@ -2,6 +2,37 @@
     <div class="invoice">
         <div class="columns is-centered">
             <div class="column is-four-fifths is-full-print">
+                <div class="columns">
+                    <div class="column is-half">
+                        <div class="box">
+                            <b-field label="Ejecutivo SP">
+                                <b-input
+                                    v-model="executive.name"
+                                    size="is-medium"
+                                    icon-pack="fas"
+                                    icon="briefcase">
+                                </b-input>
+                            </b-field>
+                            <b-field label="Fecha del evento">
+                                <b-input
+                                    v-model="event.date"
+                                    size="is-medium"
+                                    icon-pack="fas"
+                                    icon="calendar-alt">
+                                </b-input>
+                            </b-field>
+                            <b-field label="Evento">
+                                <b-input
+                                    v-model="event.name"
+                                    size="is-medium"
+                                    icon-pack="fas"
+                                    icon="award">
+                                </b-input>
+                            </b-field>
+                        </div>
+                    </div>
+                </div>
+
                 <Summary
                     v-for="(summary, index) in summaries"
                     :key="summary.uid"
@@ -98,13 +129,17 @@ export default {
             });
         },
         saveInvoice () {
+            this.uid = !!this.uid ? this.uid : uuid();
             const invoiceModel = {
-                uid: uuid(),
+                uid: this.uid,
+                event: this.event,
+                executive: this.executive,
+                customer: this.customer,
                 summaries: this.summaries,
                 discount: this.discount,
                 iva: this.iva,
             };
-            this.$store.dispatch('createInvoice', invoiceModel);
+            this.$store.dispatch('saveInvoice', invoiceModel);
             this.$router.push ({ path: `/invoice/view/${invoiceModel.uid}` });
             this.$toast.open ({
                 message: 'Invoice guardado',
@@ -113,20 +148,35 @@ export default {
 
         },
         async loadInvoice () {
-            if (typeof this.$route.params.uid == 'undefined') {
-                this.newInvoice ();
-            } else {
-                const uid = this.$route.params.uid;
+            this.newInvoice ();
+            if (typeof this.$route.params.uid != 'undefined') {
+                this.uid = this.$route.params.uid;
                 const invoicesSnapshot = await db.collection ('invoices')
-                    .where('uid', '==', uid).get ();
+                    .where('uid', '==', this.uid).get ();
                 const invoice = invoicesSnapshot.docs[0].data();
 
-                this.summaries = invoice.summaries;
-                this.discount =invoice.discount;
+                this.executive = invoice.executive;
+                this.customer = invoice.customer;
+                this.event = invoice.event;
+                this.discount = invoice.discount;
                 this.iva = invoice.iva;
+                this.summaries = invoice.summaries;
             }
         },
         newInvoice () {
+            this.executive = {
+                name: '',
+            };
+            this.customer = {
+                name: '',
+                email: '',
+                phone: '',
+            };
+            this.event = {
+                date: '',
+                name: '',
+                place: '',
+            };
             this.summaries = [];
             this.discount = 0;
             this.iva = 16;
@@ -164,8 +214,8 @@ export default {
         if (!this.summaries.length) this.addNewSummary ();
     },
     watch: {
-        $route () {
-            this.loadInvoice ();
+        async $route () {
+            await this.loadInvoice ();
         },
         discount () {
             this.calculateTotals ();
@@ -176,6 +226,20 @@ export default {
     },
     data () {
         return {
+            uid: null,
+            executive: {
+                name: '',
+            },
+            customer: {
+                name: '',
+                email: '',
+                phone: '',
+            },
+            event: {
+                date: '',
+                name: '',
+                place: '',
+            },
             summaries: [],
             total: 0,
             subtotal: 0,

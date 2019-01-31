@@ -42,6 +42,13 @@ export default new Vuex.Store({
         storeInvoice (state, invoice) {
             state.invoices.push (invoice);
         },
+        updateInvoice (state, invoice) {
+            state.invoices.forEach ((item, index) => {
+                if (item.uid == invoice.uid) {
+                    state.invoices [index] = invoice;
+                }
+            });
+        },
         loadInvoices (state, invoices) {
             state.invoices = invoices;
         }
@@ -58,10 +65,12 @@ export default new Vuex.Store({
             commit('loadInvoices', invoices);
             commit('loading', false);
         },
-        async createInvoice ({ commit, state }, invoice) {
+        async saveInvoice ({ commit, state }, invoice) {
+            await db.collection ('invoices').doc (invoice.uid).set (invoice);
             if (!state.invoices.some(i => i.uid == invoice.uid)) {
-                await db.collection ('invoices').doc (invoice.uid).set (invoice);
                 commit ('storeInvoice', invoice);
+            } else {
+                commit ('updateInvoice', invoice);
             }
         },
     }

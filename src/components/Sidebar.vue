@@ -5,7 +5,10 @@
             v-for="item in invoices"
             :key="item.uid"
             :uid="item.uid"
-            :label="item.summaries[0].name"
+            :title="item.event.name"
+            :subtitle="item.executive.name"
+            :meta="item.event.date"
+            :selected="selected == item.uid"
             @click="go (item.uid)" />
 
         <div v-if="!invoices.length" class="notification is-info">
@@ -31,6 +34,9 @@ export default {
         },
     },
     computed: {
+        selected () {
+            return this.$route.params.uid;
+        },
         invoices () {
             return this.$store.state.invoices;
         },

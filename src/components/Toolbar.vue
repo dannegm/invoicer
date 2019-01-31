@@ -24,7 +24,6 @@ export default {
             this.$router.push ({ name: 'invoice.create' });
         },
         refresh () {
-            this.$store.commit('loading', true);
             this.$store.dispatch('loadInvoices');
         },
     },
