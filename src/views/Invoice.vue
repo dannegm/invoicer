@@ -157,6 +157,7 @@ export default {
         },
     },
     mounted () {
+        this.loadInvoice ();
         if (!this.summaries.length) this.addNewSummary ();
     },
     watch: {
