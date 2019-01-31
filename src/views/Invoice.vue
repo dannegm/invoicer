@@ -3,49 +3,62 @@
         <div class="columns is-centered">
             <div class="column is-four-fifths">
                 <Summary
-                    v-for="summary in summaries"
+                    v-for="(summary, index) in summaries"
                     :key="summary.uid"
                     :uid="summary.uid"
                     :name="summary.name"
                     :items="summary.items"
+                    :canRemove="!(summaries.length <= 1 && index == 0)"
                     @change="updateSummaryWith"
                     @trash="removeSummaryAt" />
                 
-                <button class="button" @click="addNewSummary">
-                    <span>Añadir</span>
-                    <span class="icon is-small">
-                        <i class="fas fa-plus"></i>
-                    </span>
-                </button>
-                <span>&nbsp;</span>
-                <button class="button" @click="saveInvoice">
-                    <span>Guardar</span>
-                    <span class="icon is-small">
-                        <i class="fas fa-save"></i>
-                    </span>
-                </button>
+                <div class="buttons actions">
+                    <button class="button is-primary is-rounded" @click="addNewSummary">
+                        <span>Añadir</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                    </button>
+                </div>
 
-                <br />
-                <br />
-                <div class="box">
-                    <b-field label="Total" horizontal>
-                        <b-input v-model="total" disabled></b-input>
-                    </b-field>
-                    <b-field label="Descuento" horizontal>
-                        <b-input v-model="discount" type="number"  min="0" :max="total" @focus="clear" @blur="zero"></b-input>
-                    </b-field>
-                    <b-field label="Subtotal" horizontal>
-                        <b-input v-model="subtotal" disabled></b-input>
-                    </b-field>
-                    <b-field label="I.V.A." horizontal>
-                        <b-input v-model="iva" type="number" min="0" max="100" expanded @focus="clear" @blur="zero"></b-input>
-                        <p class="control">
-                            <span class="button is-static">%</span>
-                        </p>
-                    </b-field>
-                    <b-field label="Gran Total" horizontal>
-                        <b-input v-model="final" disabled></b-input>
-                    </b-field>
+                <div class="columns">
+                    <div class="column is-half is-offset-half">
+                        <div class="results notification is-info">
+                            <b-field label="Total" horizontal>
+                                <b-input v-model="total" type="number" disabled></b-input>
+                            </b-field>
+                            <b-field label="Descuento" horizontal>
+                                <b-input v-model="discount" type="number" min="0" :max="total" @focus="clear" @blur="zero"></b-input>
+                            </b-field>
+                            <b-field label="Subtotal" horizontal>
+                                <b-input v-model="subtotal" type="number" disabled></b-input>
+                            </b-field>
+                            <b-field label="I.V.A." horizontal>
+                                <b-input v-model="iva" type="number" min="0" max="100" @focus="clear" @blur="zero"></b-input>
+                                <p class="control">
+                                    <span class="button is-static">%</span>
+                                </p>
+                            </b-field>
+                            <b-field label="Gran Total" horizontal>
+                                <b-input v-model="final" type="number" disabled></b-input>
+                            </b-field>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons floating-actions">
+                    <button class="button is-info is-rounded">
+                        <span>Imprimir</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-print"></i>
+                        </span>
+                    </button>
+                    <button class="button is-success is-rounded" @click="saveInvoice">
+                        <span>Guardar</span>
+                        <span class="icon is-small">
+                            <i class="fas fa-save"></i>
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -54,6 +67,7 @@
 
 <script>
 import uuid from 'uuid/v4';
+import { db } from '@/services/firebase';
 import Summary from '@/components/Summary';
 
 export default {
@@ -81,30 +95,51 @@ export default {
             });
         },
         saveInvoice () {
-            console.log(JSON.stringify({
+            const invoiceModel = {
                 uid: uuid(),
                 summaries: this.summaries,
                 discount: this.discount,
                 iva: this.iva,
-            }, null, 4));
+            };
+            this.$store.dispatch('createInvoice', invoiceModel);
+            this.$router.push ({ path: `/invoice/view/${invoiceModel.uid}` });
+            this.$toast.open ({
+                message: 'Invoice guardado',
+                type: 'is-success',
+            })
 
-            this.$toast.open({
-                message: 'Imprimiendo en consola',
-                type: 'is-info',
-                position: 'is-bottom'
-            });
+        },
+        async loadInvoice () {
+            if (typeof this.$route.params.uid == 'undefined') {
+                this.newInvoice ();
+            } else {
+                const uid = this.$route.params.uid;
+                const invoicesSnapshot = await db.collection ('invoices')
+                    .where('uid', '==', uid).get ();
+                const invoice = invoicesSnapshot.docs[0].data();
+
+                this.summaries = invoice.summaries;
+                this.discount =invoice.discount;
+                this.iva = invoice.iva;
+            }
+        },
+        newInvoice () {
+            this.summaries = [];
+            this.discount = 0;
+            this.iva = 16;
+            this.addNewSummary ();
         },
 
         calculateTotal () {
             const accumulator = (acc, cur) => ({ subtotal: acc.subtotal + cur.subtotal });
-            this.total = this.summaries.reduce(accumulator, { subtotal: 0 }).subtotal;
+            this.total = this.round(this.summaries.reduce(accumulator, { subtotal: 0 }).subtotal);
         },
         calculateSubtotal () {
-            this.subtotal = this.total - this.discount;
+            this.subtotal = this.round(this.total - this.discount);
         },
         calculateFinal () {
-            const taxes = (this.subtotal * this.iva) / 100;
-            this.final = this.round(this.subtotal * taxes);
+            const taxes = this.subtotal * this.iva / 100;
+            this.final = this.round(this.subtotal + taxes);
         },
         calculateTotals () {
             this.calculateTotal ();
@@ -125,6 +160,9 @@ export default {
         if (!this.summaries.length) this.addNewSummary ();
     },
     watch: {
+        $route () {
+            this.loadInvoice ();
+        },
         discount () {
             this.calculateTotals ();
         },
@@ -145,12 +183,63 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .invoice {
     padding-top: 2em;
-    padding-bottom: 4em;
+    padding-bottom: 6em;
     .summary {
         margin-bottom: 1em;
+    }
+    .actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+    .results {
+        .field {
+            .field-label {
+                width: 60% !important;
+                flex: none !important;
+                label {
+                    color: #fff;
+                }
+            }
+            .control {
+                .input {
+                    background: none;
+                    color: #fff;
+                    border: 0;
+                    border-radius: 0;
+                    border-bottom: 1px solid #fff;
+                    text-align: right;
+                }
+                .button {
+                    background: none;
+                    color: #fff;
+                    border: 0;
+                    border-radius: 0;
+                    font-weight: 600;
+                    margin-left: -1.5em;
+                }
+                input::-webkit-outer-spin-button,
+                input::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+            }
+        }
+    }
+    .floating-actions {
+        position: fixed;
+        left: 25%;
+        width: 75%;
+        bottom: 0;
+        padding: 1em;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        background: #fff;
+        box-shadow: 0 -2px 0 0 whitesmoke;
     }
 }
 </style>

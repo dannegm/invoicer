@@ -29,7 +29,7 @@ export default new Router({
                   component: Invoice
                 },
                 {
-                  path: '/invoice/view/:uuid',
+                  path: '/invoice/view/:uid',
                   name: 'invoice.view',
                   component: Invoice
                 },

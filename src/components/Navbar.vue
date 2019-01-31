@@ -41,12 +41,6 @@
                             </a>
                             <a class="navbar-item">
                                 <span class="icon is-small">
-                                    <i class="fas fa-briefcase"></i>
-                                </span>
-                                <span>Clientes</span>
-                            </a>
-                            <a class="navbar-item">
-                                <span class="icon is-small">
                                     <i class="fas fa-users"></i>
                                 </span>
                                 <span>Usuarios</span>

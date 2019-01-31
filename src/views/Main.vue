@@ -33,9 +33,9 @@ export default {
         Navbar,
         Sidebar,
     },
-    mounted () {
+    async mounted () {
         document.title = this.title;
-        this.$store.commit('loading', false);
+        this.$store.dispatch('loadInvoices');
     },
     computed: {
         loading () {

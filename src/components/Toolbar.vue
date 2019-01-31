@@ -25,9 +25,7 @@ export default {
         },
         refresh () {
             this.$store.commit('loading', true);
-            setTimeout(() => {
-                this.$store.commit('loading', false);
-            }, 1000);
+            this.$store.dispatch('loadInvoices');
         },
     },
     data () {
