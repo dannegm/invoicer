@@ -1,7 +1,7 @@
 <template>
     <div class="invoice">
         <div class="columns is-centered">
-            <div class="column is-four-fifths">
+            <div class="column is-four-fifths is-full-print">
                 <Summary
                     v-for="(summary, index) in summaries"
                     :key="summary.uid"

@@ -1,0 +1,31 @@
+@media print {
+    .is-full-print {
+        width: 98% !important;
+        margin: auto !important;
+    }
+    .loading {
+        display: none;
+    }
+    .navbar {
+        .overlay {
+            display: none;
+        }
+        .navbar-menu {
+            display: none;
+        }
+    }
+    .main {
+        .is-sidebar {
+            display: none;
+        }
+
+        .invoice {
+            .buttons {
+                display: none !important;
+            }
+            .is-delete {
+                display: none;
+            }
+        }
+    }
+} 

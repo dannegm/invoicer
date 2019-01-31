@@ -9,7 +9,7 @@
                 <div class="is-sidebar column is-one-quarter">
                     <Sidebar />
                 </div>
-                <div class="column is-three-quarters hero has-background-light is-fullheight">
+                <div class="column is-three-quarters hero has-background-light is-fullheight is-full-print">
                     <router-view />
                 </div>
             </div>
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import '@/assets/scss/print.scss';
 import { firebase, db, auth } from '@/services/firebase';
 
 import Login from '@/views/Login';
