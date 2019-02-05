@@ -171,6 +171,10 @@ export default {
 
 <style lang="scss">
 .login {
+    .hero-body {
+        margin-top: -8em;
+    }
+
     .box {
         border: 0;
         background: none;
