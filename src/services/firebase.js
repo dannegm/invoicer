@@ -3,6 +3,7 @@ import 'firebase/auth';
 import 'firebase/storage';
 import 'firebase/functions';
 import 'firebase/firestore';
+import ui from 'firebaseui';
 
 firebase.initializeApp ({
     apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
@@ -24,4 +25,5 @@ export {
     db,
     storage,
     functions,
+    ui,
 };

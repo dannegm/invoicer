@@ -11,12 +11,36 @@
 
                             <h3 class="title has-text-grey">Dashboard</h3>
                             <p class="subtitle has-text-grey">
-                                Inicia sesión con tu cuenta de <b>Google</b> para acceder al <b>dashboard</b>.
+                                Inicia sesión con tu correo eletrónico para acceder al <b>dashboard</b>.
                             </p>
-                            
+
+                            <div class="form">
+                                <b-input
+                                    placeholder="Email"
+                                    v-model="email"
+                                    type="email">
+                                </b-input>
+
+                                <b-input
+                                    placeholder="Contraseña"
+                                    v-model="password"
+                                    type="password">
+                                </b-input>
+
+                                <button
+                                    class="button is-block is-primary is-rounded"
+                                    @click="requestEmailLogin">
+                                    <span>
+                                        Iniciar sesión
+                                    </span>
+                                </button>
+                            </div>
+
+                            <span class="separator or"></span>
+
                             <button
-                                class="button is-block is-link is-rounded"
-                                @click="requestLogin">
+                                class="button is-block is-link is-google is-rounded"
+                                @click="requestGoogleLogin">
                                 <span class="icon is-small">
                                     <i class="fab fa-google"></i>
                                 </span>
@@ -29,7 +53,7 @@
                 </div>
             </div>
         </section>
-        <section v-if="auth.is && auth.unauthorized" class="hero is-fullheight">
+        <section v-if="auth.is && auth.unauthorized && strategy == 'google'" class="hero is-fullheight">
             <div class="hero-body">
                 <div class="container has-text-centered">
                     <div class="column is-4 is-offset-4">
@@ -44,8 +68,8 @@
                             </p>
 
                             <button
-                                class="button is-block is-link is-rounded"
-                                @click="requestLogin">
+                                class="button is-block is-link is-google is-rounded"
+                                @click="requestGoogleLogin">
                                 <span class="icon is-small">
                                     <i class="fab fa-google"></i>
                                 </span>
@@ -61,17 +85,29 @@
                 </div>
             </div>
         </section>
+        <section v-if="auth.is && strategy == 'email'">
+            <div id="firebaseui-auth-container"></div>
+        </section>
     </div>
 </template>
 
 <script>
-import { firebase, db, auth } from '@/services/firebase';
+import { firebase, db, auth, ui } from '@/services/firebase';
 const GoogleAuthProvider = new firebase.auth.GoogleAuthProvider ();
 
 export default {
     name: 'Login',
     methods: {
-        async requestLogin () {
+        async requestEmailLogin () {
+            this.strategy = 'email';
+            return await auth.signInWithEmailAndPassword(this.email, this.password)
+            .catch(error => {
+                console.log(error);
+                alert(error.message);
+            });
+        },
+        async requestGoogleLogin () {
+            this.strategy = 'google';
             this.$store.commit('loading', true);
             return await auth.signInWithPopup (GoogleAuthProvider)
         },
@@ -91,8 +127,9 @@ export default {
                     uid: user.uid,
                     email: user.email,
                     name: user.displayName,
-                    role: 'none',
-                    registered_at: new Date (),
+                    role: firstUserFound.data().role === undefined ? 'none' : firstUserFound.data().role,
+                    registered_at: firstUserFound.data().registered_at === undefined ? new Date () : firstUserFound.data().registered_at,
+                    updated_at: new Date (),
                     photoURL: user.photoURL,
                     active: true,
                     unauthorized: null,
@@ -122,10 +159,17 @@ export default {
             return this.$store.state.user;
         },
     },
+    data () {
+        return {
+            strategy: 'none',
+            email: '',
+            password: '',
+        }
+    }
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .login {
     .box {
         border: 0;
@@ -161,6 +205,49 @@ export default {
 
         .is-inverted {
             margin-top: 0.65em;
+        }
+
+        .separator {
+            display: block;
+            width: 100%;
+            height: 1px;
+            background: #ccc;
+            margin-top: .5em;
+            margin-bottom: 1.5em;
+
+            &:after {
+                content: "o";
+                position: absolute;
+                margin-top: -22px;
+                margin-left: -8px;
+                background: #fff;
+                padding: 8px;
+                color: #aaa;
+            }
+        }
+
+        .is-google {
+            background-color: #DF413C;
+        }
+
+        .form {
+            display: block;
+            width: 100%;
+
+            .input {
+                padding: 1.4em !important;
+
+                &[type="email"] {
+                    border-radius: 10px 10px 0 0;
+                }
+                &[type="password"] {
+                    border-radius: 0 0 10px 10px;
+                }
+            }
+
+            .button {
+                margin: 1em auto;
+            }
         }
     }
 }

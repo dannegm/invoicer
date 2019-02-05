@@ -39,7 +39,7 @@
                                 </span>
                                 <span>Inicio</span>
                             </a>
-                            <a class="navbar-item">
+                            <a class="navbar-item" @click="go('main.users')">
                                 <span class="icon is-small">
                                     <i class="fas fa-users"></i>
                                 </span>

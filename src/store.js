@@ -14,6 +14,7 @@ export default new Vuex.Store({
         },
         user: {
             photoURL: `${process.env.BASE_URL}img/avatar-placeholder.png`,
+            email: '',
         },
         invoices: [],
     },
@@ -32,6 +33,7 @@ export default new Vuex.Store({
         logout (state) {
             state.user = {
                 photoURL: `${process.env.BASE_URL}img/avatar-placeholder.png`,
+                email: '',
             };
             state.auth = {
                 is: false,
