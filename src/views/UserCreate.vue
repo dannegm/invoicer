@@ -32,7 +32,7 @@
                             label="Contraseña"
                             :message="errors.password"
                             :type="errors.password && 'is-danger'">
-                            <b-input v-model="password" ype="password"></b-input>
+                            <b-input v-model="password" type="password"></b-input>
                         </b-field>
 
 

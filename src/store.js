@@ -1,8 +1,10 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Vue from 'vue';
+import Vuex from 'vuex';
 import { auth, db } from '@/services/firebase';
 
-Vue.use(Vuex)
+Vue.use(Vuex);
+
+const photoPlaceholder = `${process.env.BASE_URL}img/avatar-placeholder.png`;
 
 export default new Vuex.Store({
     state: {
@@ -13,7 +15,7 @@ export default new Vuex.Store({
             unauthorized: false,
         },
         user: {
-            photoURL: `${process.env.BASE_URL}img/avatar-placeholder.png`,
+            photoURL: photoPlaceholder,
             email: '',
         },
         invoices: [],
@@ -24,6 +26,10 @@ export default new Vuex.Store({
         },
         login (state, user) {
             state.user = user;
+            if (user.photoURL == null) {
+                state.user.photoURL = photoPlaceholder;
+            }
+
             state.auth = {
                 is: true,
                 uid: user.uid,
@@ -32,7 +38,7 @@ export default new Vuex.Store({
         },
         logout (state) {
             state.user = {
-                photoURL: `${process.env.BASE_URL}img/avatar-placeholder.png`,
+                photoURL: photoPlaceholder,
                 email: '',
             };
             state.auth = {

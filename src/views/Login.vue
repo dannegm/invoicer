@@ -126,7 +126,7 @@ export default {
                 const userModel = {
                     uid: user.uid,
                     email: user.email,
-                    name: user.displayName,
+                    name: firstUserFound.data().name || user.displayName,
                     role: firstUserFound.data().role === undefined ? 'none' : firstUserFound.data().role,
                     registered_at: firstUserFound.data().registered_at === undefined ? new Date () : firstUserFound.data().registered_at,
                     updated_at: new Date (),
